@@ -9,14 +9,17 @@ function App() {
     name: '',
     phonenumber: ''
   });
+  const [editUser, setEditUser] = useState(null);
 
   useEffect(() => {
+    // GET METHOD
     axios.get(baseURL) // parameter URL
       .then(res => setUsers(res.data))
       .catch(err => console.error(err)
       )
   }, []);
 
+  // POST METHOD
   const addUser = () => {
     // parameter URL
     // parameter payload
@@ -26,6 +29,26 @@ function App() {
     })
   }
 
+  // Load existing user data to the form
+  const loadUserdata = (user) => {
+    setForm({name: user.name, phonenumber: user.phonenumber});
+    setEditUser(user.id);
+  }
+
+  // PUT METHOD
+  const updateUser = () => {
+    // const updated = {...form};
+    // updated - payload
+    axios.put(`${baseURL}/${editUser}`, form)
+    .then((res) => {
+      // Update logic
+      setUsers(users.map((u) => (u.id === editUser ? res.data : u)));
+    });
+    setForm({name: '', phonenumber: ''});
+    setEditUser(null);
+  }
+
+  // DELETE METHOD
   const deleteUser = (id) => {
     // parameter - URL / id
     axios.delete(`${baseURL}/${id}`).then(() => {
@@ -46,14 +69,22 @@ function App() {
       value={form.phonenumber} 
       onChange={(e) => setForm({ ...form, phonenumber: e.target.value })} 
       placeholder='Enter your number' />
-      <button onClick={addUser}>Add user</button>
+      
+      {
+        !editUser ? (
+          <button onClick={addUser}>Add user</button>
+        ) : (
+          <button onClick={updateUser}>Update user</button>
+        )
+      }
 
       <div>
         <ul>
           {
             users.map((user) => (
               <li key={user.id}>{user.name} - {user.phonenumber} |
-                <button>Edit details</button><button onClick={() => deleteUser(user.id)}>Delete user</button></li>
+                <button onClick={() => loadUserdata(user)}>Edit details</button>
+                <button onClick={() => deleteUser(user.id)}>Delete user</button></li>
             ))
           }
         </ul>
